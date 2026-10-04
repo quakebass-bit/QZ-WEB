@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Quizlet Trainer Pro</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <meta name="application-name" content="Quizlet Pro">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Quizlet Pro">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#4255ff" id="metaThemeColor">
+
+  <!-- Dynamic PWA Manifest & App Icons via Data URI -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%234255ff'/%3E%3Cpath d='M28 72 L46 26 L54 26 L72 72 L62 72 L58 60 L42 60 L38 72 Z M45 51 L55 51 L50 37 Z' fill='%23ffffff'/%3E%3C/svg%3E">
+
+  <style>
+    /* CSS ТЕМЫ: Светлая, Тёмная, Сепия */
+    :root, [data-theme="light"] {
+      --primary: #4255ff;
+      --primary-hover: #2e40eb;
+      --primary-subtle: #eef2ff;
+      --bg: #f6f7fb;
+      --card-bg: #ffffff;
+      --text: #1a1d28;
+      --text-muted: #646f79;
+      --border: #e0e5eb;
+      --opt-hover: #f8fafc;
+      --opt-border-hover: #bcc5d3;
+      --pill-bg: #eef2ff;
+      --pill-text: #4255ff;
+      --btn-secondary-bg: #f0f3f6;
+      --btn-secondary-hover: #e2e8ee;
+      --btn-secondary-active: #e0e7ff;
+      --correct: #10b981;
+      --correct-bg: #ecfdf5;
+      --correct-border: #6ee7b7;
+      --wrong: #f43f5e;
+      --wrong-bg: #fff1f2;
+      --wrong-border: #fecdd3;
+      --modal-overlay: rgba(15, 23, 42, 0.55);
+      --shadow: 0 10px 30px rgba(0,0,0,0.06);
+      --badge-bg: #f1f5f9;
+      --badge-text: #334155;
+    }
+
+    [data-theme="dark"] {
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-subtle: #27273a;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --opt-hover: #273549;
+      --opt-border-hover: #64748b;
+      --pill-bg: #312e81;
+      --pill-text: #c7d2fe;
+      --btn-secondary-bg: #334155;
+      --btn-secondary-hover: #475569;
+      --btn-secondary-active: #3730a3;
+      --correct: #10b981;
+      --correct-bg: #064e3b;
+      --correct-border: #059669;
+      --wrong: #f43f5e;
+      --wrong-bg: #881337;
+      --wrong-border: #be123c;
+      --modal-overlay: rgba(0, 0, 0, 0.75);
+      --shadow: 0 10px 30px rgba(0,0,0,0.45);
+      --badge-bg: #273549;
+      --badge-text: #cbd5e1;
+    }
+
+    [data-theme="sepia"] {
+      --primary: #8b5a2b;
+      --primary-hover: #704214;
+      --primary-subtle: #ecd9c6;
+      --bg: #f4ecd8;
+      --card-bg: #fbf6ec;
+      --text: #3b2f2f;
+      --text-muted: #7d6b5e;
+      --border: #ded1bd;
+      --opt-hover: #f3e9d7;
+      --opt-border-hover: #c4b39b;
+      --pill-bg: #eeddc9;
+      --pill-text: #6b3e11;
+      --btn-secondary-bg: #eadecd;
+      --btn-secondary-hover: #decbb5;
+      --btn-secondary-active: #d6bda1;
+      --correct: #2e7d32;
+      --correct-bg: #e8f5e9;
+      --correct-border: #a5d6a7;
+      --wrong: #c62828;
+      --wrong-bg: #ffebee;
+      --wrong-border: #ef9a9a;
+      --modal-overlay: rgba(59, 47, 47, 0.6);
+      --shadow: 0 10px 30px rgba(90, 70, 50, 0.1);
+      --badge-bg: #ede0cd;
+      --badge-text: #4e3629;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    }
+
+    body { 
+      background: var(--bg); 
+      color: var(--text); 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      padding: clamp(10px, 2vmin, 28px); 
+    }
+
+    .container {
+      width: 100%;
+      max-width: min(1000px, 94vw);
+      background: var(--card-bg);
+      border-radius: clamp(14px, 2vmin, 24px);
+      padding: clamp(16px, 3.5vmin, 40px);
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    /* Верхняя панель */
+    .top-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: clamp(14px, 2.5vmin, 26px);
+      gap: clamp(8px, 1.2vmin, 14px);
+      flex-wrap: wrap;
+    }
+
+    .file-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--pill-bg);
+      color: var(--pill-text);
+      padding: clamp(5px, 0.8vmin, 8px) clamp(10px, 1.4vmin, 16px);
+      border-radius: 20px;
+      font-size: clamp(11px, 1.2vmin, 14px);
+      font-weight: 600;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: clamp(6px, 0.9vmin, 10px);
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .btn-secondary {
+      background: var(--btn-secondary-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: clamp(6px, 1vmin, 10px) clamp(10px, 1.4vmin, 16px);
+      border-radius: clamp(6px, 1vmin, 10px);
+      cursor: pointer;
+      font-size: clamp(11px, 1.25vmin, 14px);
+      font-weight: 600;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+    .btn-secondary:hover {
+      background: var(--btn-secondary-hover);
+    }
+    .btn-secondary.active {
+      background: var(--btn-secondary-active);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Селектор темы */
+    .theme-select {
+      background: var(--btn-secondary-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: clamp(6px, 1vmin, 10px) clamp(10px, 1.4vmin, 14px);
+      border-radius: clamp(6px, 1vmin, 10px);
+      font-size: clamp(11px, 1.25vmin, 14px);
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: clamp(10px, 1.6vmin, 16px);
+      margin-bottom: clamp(14px, 2.5vmin, 26px);
+    }
+    .badge-count {
+      width: clamp(30px, 4vmin, 42px);
+      height: clamp(30px, 4vmin, 42px);
+      border-radius: 50%;
+      background: var(--btn-secondary-bg);
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: clamp(11px, 1.3vmin, 15px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .badge-count.done {
+      background: var(--correct);
+      color: #fff;
+    }
+    .bar-segments {
+      display: flex;
+      flex: 1;
+      gap: clamp(4px, 0.7vmin, 8px);
+      height: clamp(7px, 1vmin, 12px);
+    }
+    .segment {
+      flex: 1;
+      background: var(--btn-secondary-bg);
+      border-radius: 5px;
+      overflow: hidden;
+      position: relative;
+    }
+    .segment-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    .round-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: clamp(12px, 1.8vmin, 20px);
+      color: var(--text-muted);
+      font-size: clamp(12px, 1.35vmin, 15px);
+      font-weight: 600;
+    }
+    .phase-badge {
+      background: var(--pill-bg);
+      color: var(--pill-text);
+      padding: clamp(4px, 0.6vmin, 7px) clamp(8px, 1.2vmin, 14px);
+      border-radius: 12px;
+      font-size: clamp(11px, 1.2vmin, 13px);
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .current-topic-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border: 1px solid var(--border);
+      padding: clamp(4px, 0.6vmin, 7px) clamp(8px, 1.2vmin, 14px);
+      border-radius: 8px;
+      font-size: clamp(11px, 1.2vmin, 13px);
+      font-weight: 600;
+      margin-bottom: clamp(10px, 1.6vmin, 18px);
+    }
+
+    .question-box {
+      min-height: clamp(80px, 12vmin, 130px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-bottom: clamp(16px, 2.8vmin, 32px);
+    }
+    .term-label {
+      font-size: clamp(11px, 1.25vmin, 14px);
+      color: var(--text-muted);
+      margin-bottom: clamp(6px, 1vmin, 10px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .speak-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: clamp(15px, 1.8vmin, 22px);
+      color: var(--text-muted);
+      transition: transform 0.15s, color 0.15s;
+    }
+    .speak-btn:hover { color: var(--primary); transform: scale(1.15); }
+    
+    .prompt-text {
+      font-size: clamp(18px, 2.6vmin, 27px);
+      font-weight: 500;
+      line-height: 1.4;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .prompt-text b, .prompt-text strong {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Карточки вариантов */
+    .grid-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: clamp(10px, 1.6vmin, 18px);
+    }
+    @media (max-width: 650px) {
+      .grid-options { grid-template-columns: 1fr; }
+    }
+    .opt-card {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: clamp(10px, 1.5vmin, 16px);
+      padding: clamp(12px, 2vmin, 22px) clamp(14px, 2.2vmin, 24px);
+      font-size: clamp(14px, 1.7vmin, 19px);
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: clamp(10px, 1.4vmin, 16px);
+      text-align: left;
+      transition: all 0.15s ease;
+      user-select: none;
+      min-height: clamp(64px, 8vmin, 86px);
+      line-height: 1.35;
+    }
+    .opt-card:hover {
+      border-color: var(--opt-border-hover);
+      background: var(--opt-hover);
+      transform: translateY(-1px);
+    }
+    .opt-num {
+      width: clamp(24px, 3vmin, 34px);
+      height: clamp(24px, 3vmin, 34px);
+      border-radius: 50%;
+      background: var(--btn-secondary-bg);
+      color: var(--text-muted);
+      font-size: clamp(11px, 1.3vmin, 14px);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .opt-card.correct {
+      border-color: var(--correct) !important;
+      background: var(--correct-bg) !important;
+      color: var(--correct) !important;
+    }
+    .opt-card.correct .opt-num { background: var(--correct); color: #fff; }
+    .opt-card.wrong {
+      border-color: var(--wrong) !important;
+      background: var(--wrong-bg) !important;
+      color: var(--wrong) !important;
+    }
+    .opt-card.wrong .opt-num { background: var(--wrong); color: #fff; }
+
+    /* Поле ввода для фазы 2 */
+    .write-container {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(12px, 1.8vmin, 18px);
+    }
+    .write-input {
+      width: 100%;
+      padding: clamp(12px, 1.8vmin, 18px) clamp(14px, 2.2vmin, 22px);
+      font-size: clamp(15px, 2vmin, 21px);
+      background: var(--card-bg);
+      color: var(--text);
+      border: 2px solid var(--border);
+      border-radius: clamp(8px, 1.2vmin, 14px);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .write-input:focus {
+      border-color: var(--primary);
+    }
+    .btn-submit {
+      padding: clamp(10px, 1.6vmin, 16px) clamp(20px, 2.8vmin, 32px);
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: clamp(8px, 1.2vmin, 12px);
+      font-size: clamp(13px, 1.6vmin, 17px);
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      align-self: flex-start;
+    }
+    .btn-submit:hover { background: var(--primary-hover); }
+
+    .feedback-box {
+      margin-top: 8px;
+      padding: clamp(12px, 1.8vmin, 18px);
+      border-radius: clamp(8px, 1.2vmin, 14px);
+      font-size: clamp(13px, 1.5vmin, 16px);
+      line-height: 1.5;
+    }
+    .feedback-box.wrong {
+      background: var(--wrong-bg);
+      border: 1px solid var(--wrong-border);
+      color: var(--wrong);
+    }
+    .feedback-box .correct-ans {
+      font-weight: 600;
+      color: var(--correct);
+      font-size: clamp(15px, 2vmin, 20px);
+      display: block;
+      margin-top: 4px;
+      margin-bottom: 6px;
+    }
+    .feedback-box .correct-ans b, .feedback-box .correct-ans strong {
+      font-weight: 800;
+      text-decoration: underline;
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: clamp(12px, 2vmin, 20px);
+      background: var(--btn-secondary-bg);
+      padding: clamp(28px, 6vmin, 55px) clamp(16px, 3vmin, 30px);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: clamp(16px, 2.5vmin, 26px);
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--primary);
+      background: var(--pill-bg);
+      transform: scale(1.008);
+    }
+    .drop-icon {
+      font-size: clamp(38px, 6vmin, 58px);
+      margin-bottom: clamp(8px, 1.5vmin, 16px);
+      transition: transform 0.2s;
+    }
+    .drop-zone:hover .drop-icon {
+      transform: translateY(-4px);
+    }
+    .drop-title {
+      font-size: clamp(17px, 2.4vmin, 24px);
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: clamp(6px, 1vmin, 10px);
+    }
+    .drop-desc {
+      font-size: clamp(12px, 1.5vmin, 16px);
+      color: var(--text-muted);
+      margin-bottom: clamp(14px, 2vmin, 22px);
+      max-width: 600px;
+    }
+
+    /* Модалка */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--modal-overlay);
+      justify-content: center;
+      align-items: center;
+      padding: clamp(12px, 2vmin, 24px);
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+    .modal-content {
+      background: var(--card-bg);
+      color: var(--text);
+      padding: clamp(18px, 3vmin, 32px);
+      border-radius: clamp(12px, 2vmin, 18px);
+      max-width: 700px;
+      width: 100%;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .modal textarea {
+      width: 100%;
+      height: clamp(160px, 30vh, 280px);
+      padding: clamp(10px, 1.5vmin, 14px);
+      margin: clamp(10px, 1.5vmin, 16px) 0;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      border-radius: clamp(8px, 1.2vmin, 12px);
+      font-size: clamp(12px, 1.4vmin, 15px);
+      font-family: monospace;
+      line-height: 1.4;
+      resize: vertical;
+      outline: none;
+    }
+    .modal textarea:focus {
+      border-color: var(--primary);
+    }
+
+    /* Баннер установки PWA */
+    .pwa-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--pill-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    #filePicker { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- PWA Install Prompt Banner -->
+    <div class="pwa-banner" id="pwaBanner">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size: 20px;">📲</span>
+        <span><b>Установить как приложение</b> для быстрого запуска и офлайн доступа</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-submit" style="padding: 6px 14px; font-size: 12px;" onclick="installPWA()">Установить</button>
+        <button class="btn-secondary" style="padding: 6px 10px; font-size: 12px;" onclick="dismissPwaBanner()">✕</button>
+      </div>
+    </div>
+
+    <!-- Верхняя панель -->
+    <div class="top-actions" id="topNav">
+      <div class="file-pill" id="filePill">📁 Файл не выбран</div>
+      <div class="btn-group">
+        <!-- Переключатель тем -->
+        <select class="theme-select" id="themeSelect" onchange="changeTheme(this.value)" title="Выбрать тему">
+          <option value="light">☀️ Светлая</option>
+          <option value="dark">🌙 Тёмная</option>
+          <option value="sepia">📜 Сепия</option>
+        </select>
+        
+        <button class="btn-secondary" id="modeToggleBtn" onclick="toggleMode()">🎯 Режим: Полный</button>
+        <button class="btn-secondary" id="soundToggleBtn" onclick="toggleSound()">🔊 Звук вкл</button>
+        <button class="btn-secondary" id="shuffleToggleBtn" onclick="toggleShuffle()">🔀 Перемешивать: Да</button>
+        <button class="btn-secondary" id="resetProgressBtn" onclick="restartCurrentModule()">🔄 Сначала</button>
+        <input type="file" id="filePicker" accept=".txt,.csv,.tsv" onchange="handleFileSelect(event)">
+        <button class="btn-secondary" onclick="document.getElementById('filePicker').click()">📂 Файл</button>
+        <button class="btn-secondary" onclick="openModal()">Вставить текст</button>
+      </div>
+    </div>
+
+    <!-- Основной блок тренировки -->
+    <div id="trainerArea" style="display: none;">
+      <!-- Прогресс -->
+      <div class="progress-wrap">
+        <div class="badge-count done" id="doneCount">0</div>
+        <div class="bar-segments" id="segmentsBar"></div>
+        <div class="badge-count" id="totalCount">0</div>
+      </div>
+
+      <!-- Метаданные раунда -->
+      <div class="round-info">
+        <span id="roundTitle">Раунд 1</span>
+        <span class="phase-badge" id="phaseBadge">Выбор ответа</span>
+      </div>
+
+      <div id="topicBadgeContainer"></div>
+
+      <!-- Вопрос -->
+      <div class="question-box">
+        <div class="term-label">
+          <span>Вопрос / Задание</span>
+          <button class="speak-btn" title="Озвучить" onclick="speakCurrent()">🔊</button>
+        </div>
+        <div class="prompt-text" id="promptText">...</div>
+      </div>
+
+      <!-- Фаза 1: Выбор ответа (4 варианта) -->
+      <div class="grid-options" id="choiceContainer"></div>
+
+      <!-- Фаза 2: Ввод текста -->
+      <div class="write-container" id="writeContainer" style="display: none;">
+        <input type="text" class="write-input" id="writeInput" placeholder="Введите перевод на английском..." autocomplete="off">
+        <button class="btn-submit" id="writeSubmitBtn" onclick="checkWrittenAnswer()">Ответить</button>
+        <div id="writeFeedback"></div>
+      </div>
+    </div>
+
+    <!-- Начальный экран -->
+    <div id="emptyArea">
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('filePicker').click()">
+        <div class="drop-icon">📥</div>
+        <div class="drop-title">Переместите файл сюда или нажмите, чтобы открыть</div>
+        <div class="drop-desc">Поддерживаются .txt, .csv, .tsv с любыми разделителями (стрелки, ;, тире). Можно выделять важные фрагменты как **слово**</div>
+        <button class="btn-submit" type="button" onclick="event.stopPropagation(); document.getElementById('filePicker').click()">
+          📂 Выбрать файл на устройстве
+        </button>
+      </div>
+
+      <div style="text-align: center; display:flex; justify-content:center; gap: 10px; flex-wrap: wrap;">
+        <button class="btn-secondary" style="padding: clamp(10px, 1.5vmin, 14px) clamp(16px, 2vmin, 24px); font-size: clamp(13px, 1.5vmin, 16px);" onclick="openModal()">
+          ✏️ Вставить текст вручную
+        </button>
+        <button class="btn-secondary" style="padding: clamp(10px, 1.5vmin, 14px) clamp(16px, 2vmin, 24px); font-size: clamp(13px, 1.5vmin, 16px);" onclick="loadDemoDeck()">
+          💡 Загрузить пример
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модалка для вставки текста -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h3 style="font-size: clamp(17px, 2.2vmin, 22px);">Вставить карточки</h3>
+      <p style="font-size: clamp(12px, 1.4vmin, 14px); color: var(--text-muted); margin-top: 6px;">
+        Поддерживает любые разделители: <code>-&gt;</code>, <code>;</code>, <code>табуляция</code>, <code>-</code>. Можно использовать <code>**жирный шрифт**</code>!
+      </p>
+      <textarea id="rawInput" placeholder="упростить **процесс**;streamline the **process**&#10;устранить неполадки в **системе**;troubleshoot **system** issues&#10;**сомнительное** решение;a **questionable** decision&#10;тонко настроить **настройки**;fine-tune the **settings**"></textarea>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-secondary" onclick="closeModal()">Отмена</button>
+        <button class="btn-submit" onclick="savePastedWords()">Начать обучение</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================
+       1. УПРАВЛЕНИЕ ТЕМАМИ (Light / Dark / Sepia)
+       ========================================================= */
+    const THEME_KEY = 'quizlet_trainer_theme';
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+      applyTheme(savedTheme);
+      document.getElementById('themeSelect').value = savedTheme;
+    }
+
+    function changeTheme(themeName) {
+      applyTheme(themeName);
+      localStorage.setItem(THEME_KEY, themeName);
+    }
+
+    function applyTheme(themeName) {
+      document.documentElement.setAttribute('data-theme', themeName);
+      const meta = document.getElementById('metaThemeColor');
+      if (meta) {
+        if (themeName === 'dark') meta.content = '#0f172a';
+        else if (themeName === 'sepia') meta.content = '#f4ecd8';
+        else meta.content = '#4255ff';
+      }
+    }
+
+    initTheme();
+
+    /* =========================================================
+       2. PWA: Service Worker и Web App Manifest на лету
+       ========================================================= */
+    let deferredPrompt = null;
+
+    function setupPWA() {
+      // Генерация динамического manifest.json
+      const manifestJson = {
+        name: "Quizlet Trainer Pro",
+        short_name: "Quizlet Pro",
+        description: "Интерактивный тренажер лексики с карточками и режимом письма",
+        start_url: window.location.href,
+        display: "standalone",
+        background_color: "#1e293b",
+        theme_color: "#4255ff",
+        icons: [
+          {
+            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='42' fill='%234255ff'/%3E%3Cpath d='M50 140 L88 44 L104 44 L142 140 L122 140 L112 114 L80 114 L70 140 Z M86 96 L106 96 L96 68 Z' fill='%23ffffff'/%3E%3C/svg%3E",
+            sizes: "192x192",
+            type: "image/svg+xml"
+          },
+          {
+            src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%234255ff'/%3E%3Cpath d='M130 380 L234 120 L278 120 L382 380 L328 380 L302 310 L210 310 L184 380 Z M226 260 L286 260 L256 182 Z' fill='%23ffffff'/%3E%3C/svg%3E",
+            sizes: "512x512",
+            type: "image/svg+xml"
+          }
+        ]
+      };
+
+      const manifestBlob = new Blob([JSON.stringify(manifestJson)], { type: 'application/json' });
+      const manifestUrl = URL.createObjectURL(manifestBlob);
+      const manifestLink = document.createElement('link');
+      manifestLink.rel = 'manifest';
+      manifestLink.href = manifestUrl;
+      document.head.appendChild(manifestLink);
+
+      // Регистрация минимального Service Worker для поддержки оффлайн и PWA install
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        const swCode = `
+          self.addEventListener('install', e => self.skipWaiting());
+          self.addEventListener('activate', e => self.clients.claim());
+          self.addEventListener('fetch', e => {
+            e.respondWith(
+              fetch(e.request).catch(() => caches.match(e.request))
+            );
+          });
+        `;
+        const swBlob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(swBlob);
+        navigator.serviceWorker.register(swUrl).catch(err => {
+          // Игнорируем в средах sandbox/iframe
+        });
+      }
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const banner = document.getElementById('pwaBanner');
+        if (banner) banner.style.display = 'flex';
+      });
+    }
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => {
+          deferredPrompt = null;
+          dismissPwaBanner();
+        });
+      }
+    }
+
+    function dismissPwaBanner() {
+      const banner = document.getElementById('pwaBanner');
+      if (banner) banner.style.display = 'none';
+    }
+
+    setupPWA();
+
+    /* =========================================================
+       3. ОСНОВНАЯ ЛОГИКА ТРЕНАЖЁРА
+       ========================================================= */
+    let rawLoadedWords = [];
+    let currentModuleTitle = "Текущий модуль";
+    let allWords = [];
+    const BATCH_SIZE = 10;
+    let rounds = [];
+    let currentRoundIndex = 0;
+    let currentPhase = 'choice'; // 'choice' | 'write'
+    let currentQueue = [];
+    let activeCard = null;
+    let isLocked = false;
+    let fullyMasteredCount = 0;
+
+    let isSoundEnabled = true;
+    let isShuffleEnabled = true;
+    let isChoiceOnlyMode = false;
+
+    function cleanMarkdownAndNoise(str) {
+      return str
+        .replace(/[_~`]/g, "")
+        .replace(/^["'«»]|["'«»]$/g, "")
+        .replace(/^\d+[\.\)]\s*/, "")
+        .trim();
+    }
+
+    function renderFormatted(str) {
+      if (!str) return "";
+      let safe = str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      safe = safe.replace(/&lt;b&gt;/gi, "<b>").replace(/&lt;\/b&gt;/gi, "</b>");
+      safe = safe.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+      return safe;
+    }
+
+    function stripFormatting(str) {
+      if (!str) return "";
+      return str
+        .replace(/<[^>]*>/g, "")
+        .replace(/\*\*(.*?)\*\*/g, "$1")
+        .replace(/[*_~`]/g, "")
+        .trim();
+    }
+
+    function normalize(text) {
+      return text
+        .toLowerCase()
+        .replace(/<[^>]*>/g, "")
+        .replace(/[*_~`.,/#!$%^&*;:{}=\-_~()?"'«»]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function fisherYatesShuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function toggleMode() {
+      isChoiceOnlyMode = !isChoiceOnlyMode;
+      const btn = document.getElementById('modeToggleBtn');
+      if (isChoiceOnlyMode) {
+        btn.innerText = "🎯 Режим: Только выбор";
+        btn.classList.add('active');
+      } else {
+        btn.innerText = "🎯 Режим: Полный";
+        btn.classList.remove('active');
+      }
+      restartCurrentModule();
+    }
+
+    function toggleSound() {
+      isSoundEnabled = !isSoundEnabled;
+      const btn = document.getElementById('soundToggleBtn');
+      if (isSoundEnabled) {
+        btn.innerText = "🔊 Звук вкл";
+        btn.classList.remove('active');
+      } else {
+        btn.innerText = "🔇 Без звука";
+        btn.classList.add('active');
+        stopSpeech();
+      }
+    }
+
+    function toggleShuffle() {
+      isShuffleEnabled = !isShuffleEnabled;
+      const btn = document.getElementById('shuffleToggleBtn');
+      if (isShuffleEnabled) {
+        btn.innerText = "🔀 Перемешивать: Да";
+        btn.classList.remove('active');
+      } else {
+        btn.innerText = "➡️ По порядку";
+        btn.classList.add('active');
+      }
+      restartCurrentModule();
+    }
+
+    function stopSpeech() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    function speak(text) {
+      if (!isSoundEnabled) return;
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+
+        let cleanedText = text;
+        if (cleanedText.includes(' — ')) cleanedText = cleanedText.split(' — ')[0];
+        else if (cleanedText.includes('—')) cleanedText = cleanedText.split('—')[0];
+        else if (cleanedText.includes(' – ')) cleanedText = cleanedText.split(' – ')[0];
+        else if (cleanedText.includes('–')) cleanedText = cleanedText.split('–')[0];
+        else if (cleanedText.includes(' - ')) cleanedText = cleanedText.split(' - ')[0];
+
+        cleanedText = stripFormatting(cleanedText);
+        cleanedText = cleanMarkdownAndNoise(cleanedText);
+
+        const utter = new SpeechSynthesisUtterance(cleanedText);
+        const hasCyrillic = /[а-яё]/i.test(cleanedText);
+        utter.lang = hasCyrillic ? 'ru-RU' : 'en-US';
+        utter.rate = 0.95;
+        window.speechSynthesis.speak(utter);
+      }
+    }
+
+    function speakCurrent() {
+      if (activeCard) speak(activeCard.en);
+    }
+
+    function parseCustomText(text) {
+      const lines = text.split(/\r?\n/);
+      const parsed = [];
+      let globalTitle = "Загруженный модуль";
+      let activeSection = "";
+
+      const delimiters = [
+        " --> ", "-->", 
+        " -> ", "->", 
+        " => ", "=>", 
+        " → ", "→", 
+        ";", "\t", " | "
+      ];
+
+      for (let rawLine of lines) {
+        let line = rawLine.trim();
+        if (!line) continue;
+
+        if (line.startsWith("---") || line.startsWith("#") || line.startsWith("//")) {
+          const cleanHeader = line.split(/[;\t]/)[0].replace(/^[-#\/\s]+|[-#\/\s]+$/g, "").trim();
+          if (cleanHeader) {
+            activeSection = cleanHeader;
+            if (globalTitle === "Загруженный модуль") globalTitle = cleanHeader;
+          }
+          continue;
+        }
+
+        let left = "", right = "";
+
+        for (const d of delimiters) {
+          if (line.includes(d)) {
+            const parts = line.split(d);
+            left = parts[0];
+            right = parts.slice(1).join(d);
+            break;
+          }
+        }
+
+        if (!left && (line.includes(" — ") || line.includes(" - "))) {
+          const sep = line.includes(" — ") ? " — " : " - ";
+          const parts = line.split(sep);
+          left = parts[0];
+          right = parts.slice(1).join(sep);
+        }
+
+        if (left && right) {
+          let term = cleanMarkdownAndNoise(left);
+          let def = cleanMarkdownAndNoise(right);
+
+          if (term && def) {
+            parsed.push({ 
+              ru: term, 
+              en: def, 
+              topic: activeSection || "Основной блок" 
+            });
+          }
+        }
+      }
+      return { parsed, title: globalTitle };
+    }
+
+    function loadDemoDeck() {
+      const demoData = `
+# Бизнес и IT лексика
+упростить **процесс** -> streamline the **process**
+устранить неполадки в **системе** -> troubleshoot **system** issues
+**сомнительное** решение -> a **questionable** decision
+тонко настроить **настройки** -> fine-tune the **settings**
+прийти к общему **знаменателю** -> reach a common **ground**
+опережать **график** -> ahead of **schedule**
+идти на **компромисс** -> make a **compromise**
+принять взвешенное **решение** -> make an informed **decision**
+      `.trim();
+      const res = parseCustomText(demoData);
+      initTrainer(res.parsed, res.title);
+    }
+
+    function initTrainer(words, title = "Текущий модуль") {
+      if (!words || words.length < 4) {
+        alert("В модуле должно быть не менее 4 карточек для генерации вариантов!");
+        return;
+      }
+      stopSpeech();
+      rawLoadedWords = [...words];
+      currentModuleTitle = title;
+
+      document.getElementById('filePill').innerText = `📁 ${title} (${words.length} шт.)`;
+      document.getElementById('totalCount').innerText = words.length;
+
+      document.getElementById('emptyArea').style.display = 'none';
+      document.getElementById('trainerArea').style.display = 'block';
+
+      restartCurrentModule();
+    }
+
+    function restartCurrentModule() {
+      if (!rawLoadedWords.length) return;
+      stopSpeech();
+      
+      allWords = isShuffleEnabled ? fisherYatesShuffle(rawLoadedWords) : [...rawLoadedWords];
+
+      rounds = [];
+      for (let i = 0; i < allWords.length; i += BATCH_SIZE) {
+        rounds.push(allWords.slice(i, i + BATCH_SIZE));
+      }
+
+      currentRoundIndex = 0;
+      fullyMasteredCount = 0;
+      setupSegments();
+      startRound(0);
+    }
+
+    function setupSegments() {
+      const container = document.getElementById('segmentsBar');
+      container.innerHTML = '';
+      rounds.forEach((_, idx) => {
+        const seg = document.createElement('div');
+        seg.className = 'segment';
+        seg.innerHTML = `<div class="segment-fill" id="segFill_${idx}"></div>`;
+        container.appendChild(seg);
+      });
+    }
+
+    function startRound(roundIdx) {
+      currentRoundIndex = roundIdx;
+      currentPhase = 'choice';
+      const roundCards = rounds[roundIdx];
+      currentQueue = isShuffleEnabled ? fisherYatesShuffle(roundCards) : [...roundCards];
+      updateHeader();
+      nextQuestion();
+    }
+
+    function updateHeader() {
+      document.getElementById('roundTitle').innerText = `Раунд ${currentRoundIndex + 1} из ${rounds.length}`;
+      document.getElementById('phaseBadge').innerText = currentPhase === 'choice' 
+        ? (isChoiceOnlyMode ? 'Выбор варианта' : 'Фаза 1: Выбор ответа')
+        : 'Фаза 2: Письмо';
+      document.getElementById('doneCount').innerText = fullyMasteredCount;
+
+      const currentRoundTotal = rounds[currentRoundIndex].length;
+      let progressFactor = 0;
+
+      if (isChoiceOnlyMode) {
+        progressFactor = (currentRoundTotal - currentQueue.length) / currentRoundTotal;
+      } else {
+        progressFactor = currentPhase === 'choice' 
+          ? ((currentRoundTotal - currentQueue.length) / currentRoundTotal) * 0.5
+          : 0.5 + (((currentRoundTotal - currentQueue.length) / currentRoundTotal) * 0.5);
+      }
+
+      const fillEl = document.getElementById(`segFill_${currentRoundIndex}`);
+      if (fillEl) {
+        fillEl.style.width = `${Math.round(progressFactor * 100)}%`;
+      }
+    }
+
+    function nextQuestion() {
+      isLocked = false;
+      document.getElementById('writeFeedback').innerHTML = '';
+      document.getElementById('writeInput').value = '';
+
+      if (currentQueue.length === 0) {
+        if (isChoiceOnlyMode) {
+          fullyMasteredCount += rounds[currentRoundIndex].length;
+          document.getElementById(`segFill_${currentRoundIndex}`).style.width = '100%';
+          if (currentRoundIndex + 1 < rounds.length) {
+            startRound(currentRoundIndex + 1);
+          } else {
+            showFinished();
+          }
+          return;
+        }
+
+        if (currentPhase === 'choice') {
+          currentPhase = 'write';
+          const roundCards = rounds[currentRoundIndex];
+          currentQueue = isShuffleEnabled ? fisherYatesShuffle(roundCards) : [...roundCards];
+          updateHeader();
+          nextQuestion();
+        } else {
+          fullyMasteredCount += rounds[currentRoundIndex].length;
+          document.getElementById(`segFill_${currentRoundIndex}`).style.width = '100%';
+          if (currentRoundIndex + 1 < rounds.length) {
+            startRound(currentRoundIndex + 1);
+          } else {
+            showFinished();
+          }
+        }
+        return;
+      }
+
+      activeCard = currentQueue[0];
+      document.getElementById('promptText').innerHTML = renderFormatted(activeCard.ru);
+
+      const topicEl = document.getElementById('topicBadgeContainer');
+      if (activeCard.topic) {
+        topicEl.innerHTML = `<div class="current-topic-badge">🏷️ ${activeCard.topic}</div>`;
+      } else {
+        topicEl.innerHTML = '';
+      }
+
+      if (currentPhase === 'choice') {
+        document.getElementById('choiceContainer').style.display = 'grid';
+        document.getElementById('writeContainer').style.display = 'none';
+        renderChoices();
+      } else {
+        document.getElementById('choiceContainer').style.display = 'none';
+        document.getElementById('writeContainer').style.display = 'flex';
+        setTimeout(() => document.getElementById('writeInput').focus(), 50);
+      }
+      updateHeader();
+    }
+
+    function renderChoices() {
+      const container = document.getElementById('choiceContainer');
+      container.innerHTML = '';
+
+      const distractors = allWords.filter(w => normalize(w.en) !== normalize(activeCard.en));
+      const randomDistractors = fisherYatesShuffle(distractors).slice(0, 3);
+      const options = fisherYatesShuffle([activeCard, ...randomDistractors]);
+
+      options.forEach((opt, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'opt-card';
+        const optNum = document.createElement('div');
+        optNum.className = 'opt-num';
+        optNum.textContent = idx + 1;
+
+        const optText = document.createElement('div');
+        optText.textContent = stripFormatting(opt.en);
+
+        btn.appendChild(optNum);
+        btn.appendChild(optText);
+
+        btn.onclick = () => handleChoice(opt, btn);
+        container.appendChild(btn);
+      });
+    }
+
+    function handleChoice(selectedOpt, buttonEl) {
+      if (isLocked) return;
+      isLocked = true;
+
+      const isCorrect = normalize(selectedOpt.en) === normalize(activeCard.en);
+      speak(activeCard.en);
+
+      if (isCorrect) {
+        buttonEl.classList.add('correct');
+        setTimeout(() => {
+          currentQueue.shift();
+          nextQuestion();
+        }, 650);
+      } else {
+        buttonEl.classList.add('wrong');
+        const allBtns = document.querySelectorAll('.opt-card');
+        allBtns.forEach(b => {
+          if (normalize(b.innerText).includes(normalize(activeCard.en))) {
+            b.classList.add('correct');
+          }
+        });
+        const wrongCard = currentQueue.shift();
+        currentQueue.push(wrongCard);
+
+        setTimeout(() => {
+          nextQuestion();
+        }, 1600);
+      }
+    }
+
+    function checkWrittenAnswer() {
+      if (isLocked) return;
+      const input = document.getElementById('writeInput');
+      const valNorm = normalize(input.value);
+      
+      const fullTargetNorm = normalize(activeCard.en);
+      const shortPart = activeCard.en.split(/[—–-]/)[0];
+      const shortTargetNorm = normalize(shortPart);
+
+      speak(activeCard.en);
+
+      if (valNorm === fullTargetNorm || valNorm === shortTargetNorm) {
+        input.style.borderColor = 'var(--correct)';
+        isLocked = true;
+        setTimeout(() => {
+          input.style.borderColor = 'var(--border)';
+          currentQueue.shift();
+          nextQuestion();
+        }, 750);
+      } else {
+        isLocked = true;
+        input.style.borderColor = 'var(--wrong)';
+        const fb = document.getElementById('writeFeedback');
+        fb.innerHTML = `
+          <div class="feedback-box wrong">
+            <span>Правильный ответ:</span>
+            <span class="correct-ans">${renderFormatted(activeCard.en)}</span>
+            <span style="font-size: 13px; color: var(--text-muted);">Нажмите <b>Enter</b>, чтобы повторить карточку позже</span>
+          </div>
+        `;
+        const wrongCard = currentQueue.shift();
+        currentQueue.push(wrongCard);
+
+        const resumeHandler = (e) => {
+          if (e.key === 'Enter') {
+            window.removeEventListener('keydown', resumeHandler);
+            input.style.borderColor = 'var(--border)';
+            nextQuestion();
+          }
+        };
+        window.addEventListener('keydown', resumeHandler);
+      }
+    }
+
+    // Горячие клавиши (1, 2, 3, 4 и Enter)
+    window.addEventListener('keydown', (e) => {
+      if (document.getElementById('modal').style.display === 'flex') return;
+
+      if (currentPhase === 'choice' && !isLocked) {
+        if (['1', '2', '3', '4'].includes(e.key)) {
+          const index = parseInt(e.key) - 1;
+          const btns = document.querySelectorAll('.opt-card');
+          if (btns[index]) btns[index].click();
+        }
+      } else if (currentPhase === 'write') {
+        if (e.key === 'Enter' && !isLocked) {
+          checkWrittenAnswer();
+        }
+      }
+    });
+
+    function showFinished() {
+      document.getElementById('trainerArea').innerHTML = `
+        <div style="text-align:center; padding: clamp(20px, 4vmin, 40px) 10px;">
+          <h1 style="font-size: clamp(24px, 4vmin, 36px); color: var(--correct); margin-bottom: 14px;">🎉 Модуль полностью пройден!</h1>
+          <p style="font-size: clamp(14px, 2vmin, 18px); color: var(--text-muted); margin-bottom: 28px; line-height: 1.5;">
+            Вы успешно справились со всеми ${allWords.length} выражениями!
+          </p>
+          <div style="display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
+            <button class="btn-submit" onclick="restartCurrentModule()">Пройти еще раз</button>
+            <button class="btn-secondary" style="padding: clamp(10px, 1.6vmin, 16px) clamp(16px, 2vmin, 20px);" onclick="document.getElementById('filePicker').click()">Загрузить другой файл</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function processUploadedFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const content = e.target.result;
+        const res = parseCustomText(content);
+        if (res.parsed.length >= 4) {
+          const fileName = file.name.replace(/\.[^/.]+$/, "");
+          initTrainer(res.parsed, res.title !== "Загруженный модуль" ? res.title : fileName);
+        } else {
+          alert("Не удалось распознать карточки или их меньше 4! Проверьте файл.");
+        }
+      };
+      reader.readAsText(file, "UTF-8");
+    }
+
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      processUploadedFile(file);
+      event.target.value = "";
+    }
+
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropZone.classList.remove('dragover');
+      });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files.length > 0) {
+        processUploadedFile(files[0]);
+      }
+    });
+
+    function openModal() {
+      document.getElementById('rawInput').value = rawLoadedWords.length 
+        ? rawLoadedWords.map(w => `${w.ru} -> ${w.en}`).join('\n') 
+        : "";
+      document.getElementById('modal').style.display = 'flex';
+      setTimeout(() => document.getElementById('rawInput').focus(), 100);
+    }
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+    function savePastedWords() {
+      const txt = document.getElementById('rawInput').value;
+      const res = parseCustomText(txt);
+      if (res.parsed.length >= 4) {
+        closeModal();
+        initTrainer(res.parsed, res.title);
+      } else {
+        alert("Пожалуйста, введите минимум 4 карточки со стрелочками или другим разделителем!");
+      }
+    }
+  </script>
+</body>
+</html>
